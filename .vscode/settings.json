@@ -1,0 +1,10 @@
+{
+    "editor.fontSize": 18,
+    "files.associations": {
+        "stdio.h": "c"
+    },
+    "code-runner.clearPreviousOutput": true,
+    "code-runner.runInTerminal": true,
+    "code-runner.saveFileBeforeRun": true,
+    "code-runner.saveAllFilesBeforeRun": true
+}
