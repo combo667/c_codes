@@ -1,73 +1,184 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdbool.h>
-#include "Node.h"
-#include "Stack.h"
-#include "STACK_DEP.h"
+#include <stdlib.h>
+#include <limits.h>
 
-Node *Generate(int[], int);
-void Display(Node *);
-
-int main(int argc, char const *argv[])
+typedef struct Node
 {
-    int Array[] = {30, 20, 10, 15, 25, 40, 50, 45};
-    Node *root = NULL;
+    int data;
+    struct Node *lchild;
+    struct Node *rchild;
 
-    root = Generate(Array, sizeof(Array) / sizeof(Array[0]));
-    printf("The PreOrder Traversal is :\n");
-    Display(root);
-    return 0;
+} Node;
+
+typedef struct stack
+{
+    int Top;
+    Node **array;
+    int Size;
+} Stack;
+
+Stack *createStack();
+bool isEmpty(Stack *);
+bool isFull(Stack *);
+void Push(Stack *, Node *);
+Node *Pop(Stack *);
+int stackTop(Stack *);
+Node *createNode(int);
+Node *GenerateBST(int[], int);
+void freeStack(Stack *);
+void display_Inorder(Node *);
+void display_PostOrder(Node *);
+void freeTree(Node *);
+
+Stack *createStack()
+{
+    Stack *temp = NULL;
+    temp = (Stack *)malloc(sizeof(Stack));
+    printf("Input the size of the Stack!\n");
+
+    scanf("%d", &temp->Size);
+    temp->Top = -1;
+    temp->array = (Node **)malloc(sizeof(Node *) * temp->Size);
+    return temp;
 }
 
-Node *Generate(int Pre[], int size)
+bool isEmpty(Stack *stack)
 {
-    Stack *stack = createStack();
-    int i = 0;
-    Node *temp = NULL, *p = NULL, *root = NULL;
+    return stack->Top == -1 ? true : false;
+}
 
-    root = (Node *)malloc(sizeof(Node));
+bool isFull(Stack *stack)
+{
+    return stack->Top == stack->Size - 1 ? true : false;
+}
+
+void Push(Stack *stack, Node *node)
+{
+    if (isFull(stack) != true)
+    {
+        stack->Top++;
+        stack->array[stack->Top] = node;
+    }
+    else
+        printf("StackOverFlow!\n");
+}
+
+Node *Pop(Stack *stack)
+{
+    Node *temp = NULL;
+    if (isEmpty(stack) != true)
+    {
+        temp = stack->array[stack->Top];
+        --stack->Top;
+        return temp;
+    }
+    else
+    {
+        printf("StackUnderFlow!\n");
+        return temp;
+    }
+}
+
+int stackTop(Stack *stack)
+{
+    if (isEmpty(stack) == true)
+        return INT_MAX;
+    else
+        return stack->array[stack->Top]->data;
+}
+
+void freeStack(Stack *stack)
+{
+    free(stack->array);
+    free(stack);
+}
+
+Node *createNode(int data)
+{
+    Node *temp = NULL;
+    temp = (Node *)malloc(sizeof(Node));
+    temp->data = data;
+    temp->lchild = temp->rchild = NULL;
+    return temp;
+}
+
+Node *GenerateBST(int Pre[], int size)
+{
+    Node *temp = NULL, *p = NULL, *root = NULL;
+    Stack *stack = createStack();
+
+    int i = 0;
+    root = createNode(Pre[i++]);
     p = root;
-    p->data = Pre[i++];
-    p->lchild = p->rchild = NULL;
 
     while (i < size)
     {
         if (Pre[i] < p->data)
         {
-            temp = (Node *)malloc(sizeof(Node));
-            temp->lchild = temp->rchild = NULL;
-            temp->data = Pre[i++];
+            temp = createNode(Pre[i++]);
             p->lchild = temp;
-            p = temp;
+            Push(stack, p);
+            p = p->lchild;
         }
-
         else
         {
             if (Pre[i] > p->data && Pre[i] < stackTop(stack))
             {
-                temp = (Node *)malloc(sizeof(Node));
-                temp->data = Pre[i++];
-                temp->lchild = temp->rchild = NULL;
+                temp = createNode(Pre[i++]);
                 p->rchild = temp;
-                p = temp;
+                p = p->rchild;
             }
             else
+            {
                 p = Pop(stack);
+            }
         }
     }
-
     freeStack(stack);
     return root;
 }
 
-void Display(Node *root)
+void display_Inorder(Node *root)
 {
-
     if (root != NULL)
     {
-
         printf("%d  ", root->data);
-        Display(root->lchild);
-        Display(root->rchild);
+        display_Inorder(root->lchild);
+        display_Inorder(root->rchild);
     }
+}
+
+void display_PostOrder(Node *root)
+{
+    if (root != NULL)
+    {
+        display_PostOrder(root->lchild);
+        display_PostOrder(root->rchild);
+        printf("%d ", root->data);
+    }
+}
+
+void freeTree(Node *root)
+{
+    if (root == NULL)
+        return;
+    freeTree(root->lchild);
+    freeTree(root->rchild);
+
+    free(root);
+}
+
+int main(int argc, char const *argv[])
+{
+    Node *root = NULL;
+    int Pre[] = {30, 20, 10, 15, 25, 40, 50, 45};
+    root = GenerateBST(Pre, sizeof(Pre) / sizeof(Pre[0]));
+    display_PostOrder(root);
+    printf("\n");
+
+    freeTree(root);
+    root = NULL;
+
+    return 0;
 }
